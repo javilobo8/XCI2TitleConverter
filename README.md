@@ -2,6 +2,11 @@
 
 Converts xci file to (almost) prepared title folder
 
+## Features
+* Decrypt XCI
+* Decrypt NCA
+* Patch `main.npdm`
+
 ## Requirements
 * Windows
 * Hactool build for Windows [https://github.com/SciresM/hactool/releases](https://github.com/SciresM/hactool/releases)
