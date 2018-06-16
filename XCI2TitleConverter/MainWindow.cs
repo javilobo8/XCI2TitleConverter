@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using static XCI2TitleConverter.Utils;
 
 namespace XCI2TitleConverter
 {
@@ -40,10 +41,7 @@ namespace XCI2TitleConverter
 
         private void readXCIDirectory()
         {
-            if (this.pathXCIDir == null || this.pathXCIDir == "")
-            {
-                return;
-            }
+            if (this.pathXCIDir == null || this.pathXCIDir == "") return;
 
             DirectoryInfo d = new DirectoryInfo(this.pathXCIDir);
             FileInfo[] Files = d.GetFiles("*.xci");
@@ -51,6 +49,7 @@ namespace XCI2TitleConverter
             this.cmbXCIFile.Items.Clear();
             this.cmbXCIFile.SelectedItem = -1;
             this.cmbXCIFile.Text = "";
+
             foreach (FileInfo file in Files)
             {
                 ComboboxItem item = new ComboboxItem();
@@ -61,15 +60,15 @@ namespace XCI2TitleConverter
 
         private void btnXCIDir_Click(object sender, EventArgs e)
         {
-            using (var fbd = new FolderBrowserDialog())
+            using (var folderBrowserDialog = new FolderBrowserDialog())
             {
-                DialogResult result = fbd.ShowDialog();
+                DialogResult result = folderBrowserDialog.ShowDialog();
 
-                if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(folderBrowserDialog.SelectedPath))
                 {
-                    this.pathXCIDir = fbd.SelectedPath;
+                    this.pathXCIDir = folderBrowserDialog.SelectedPath;
                     this.updateFormValues();
-                    Properties.Settings.Default["pathXCIDir"] = fbd.SelectedPath;
+                    Properties.Settings.Default["pathXCIDir"] = folderBrowserDialog.SelectedPath;
                     Properties.Settings.Default.Save();
                     this.readXCIDirectory();
                 }
@@ -78,15 +77,15 @@ namespace XCI2TitleConverter
 
         private void btnOutput_Click(object sender, EventArgs e)
         {
-            using (var fbd = new FolderBrowserDialog())
+            using (var folderBrowserDialog = new FolderBrowserDialog())
             {
-                DialogResult result = fbd.ShowDialog();
+                DialogResult result = folderBrowserDialog.ShowDialog();
 
-                if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(folderBrowserDialog.SelectedPath))
                 {
-                    this.pathOutput = fbd.SelectedPath;
+                    this.pathOutput = folderBrowserDialog.SelectedPath;
                     this.updateFormValues();
-                    Properties.Settings.Default["pathOutput"] = fbd.SelectedPath;
+                    Properties.Settings.Default["pathOutput"] = folderBrowserDialog.SelectedPath;
                     Properties.Settings.Default.Save();
                 }
             }
@@ -94,15 +93,15 @@ namespace XCI2TitleConverter
 
         private void btnHactool_Click(object sender, EventArgs e)
         {
-            OpenFileDialog openFileDialog1 = new OpenFileDialog();
-            openFileDialog1.Filter = "Hactool binary|hactool.exe";
-            openFileDialog1.Title = "Select a hacktool.exe";
+            OpenFileDialog fileDialog = new OpenFileDialog();
+            fileDialog.Filter = "Hactool binary|hactool.exe";
+            fileDialog.Title = "Select a hacktool.exe";
          
-            if (openFileDialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            if (fileDialog.ShowDialog() == DialogResult.OK)
             {
-                this.pathHactool = openFileDialog1.FileName;
+                this.pathHactool = fileDialog.FileName;
                 this.updateFormValues();
-                Properties.Settings.Default["pathHactool"] = openFileDialog1.FileName;
+                Properties.Settings.Default["pathHactool"] = fileDialog.FileName;
                 Properties.Settings.Default.Save();
             }
         }
@@ -113,7 +112,7 @@ namespace XCI2TitleConverter
             openFileDialog1.Filter = "Keyset|*.txt";
             openFileDialog1.Title = "Select a hacktool.exe";
 
-            if (openFileDialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 this.pathKeys = openFileDialog1.FileName;
                 this.updateFormValues();
@@ -142,38 +141,40 @@ namespace XCI2TitleConverter
 
         private string getLargestFileInPath(string path)
         {
-            FileInfo largestFile = new DirectoryInfo(path).EnumerateFiles().OrderByDescending(f => f.Length).FirstOrDefault();
-
-            return largestFile.FullName;
+            return new DirectoryInfo(path)
+                .EnumerateFiles()
+                .OrderByDescending(f => f.Length)
+                .FirstOrDefault()
+                .FullName;
         }
 
-        private bool isParamsValid()
+        private bool areParamsValid()
         {
-            if (this.pathXCIDir == null || this.pathXCIDir == "")
+            if (this.pathXCIDir == "")
             {
                 MessageBox.Show("Missing XCI path", null, MessageBoxButtons.OK);
                 return false;
             }
 
-            if (this.pathOutput == null || this.pathOutput == "")
+            if ( this.pathOutput == "")
             {
                 MessageBox.Show("Missing output path", null, MessageBoxButtons.OK);
                 return false;
             }
 
-            if (this.pathHactool == null || this.pathHactool == "")
+            if (this.pathHactool == "")
             {
                 MessageBox.Show("Missing hactool filepath", null, MessageBoxButtons.OK);
                 return false;
             }
 
-            if (this.pathKeys == null || this.pathKeys == "")
+            if (this.pathKeys == "")
             {
                 MessageBox.Show("Missing keys filepath", null, MessageBoxButtons.OK);
                 return false;
             }
 
-            if (this.txtTitleId.Text == null || this.txtTitleId.Text == "")
+            if (this.txtTitleId.Text == "")
             {
                 MessageBox.Show("Missing title id value", null, MessageBoxButtons.OK);
                 return false;
@@ -193,7 +194,7 @@ namespace XCI2TitleConverter
             }
 
             string xciFile = ((ComboboxItem)cmbXCIFile.SelectedItem).Text.ToString();
-            if (xciFile == null || xciFile == "")
+            if (xciFile == "")
             {
                 MessageBox.Show("Missing xci file value", null, MessageBoxButtons.OK);
                 return false;
@@ -202,35 +203,29 @@ namespace XCI2TitleConverter
             return true;
         }
 
-        // Thanks to Falo@GBATemp
-        private bool patchNPDM(string filePath, string targetTitleIdString)
-        {
-            ulong targetTitleId = (ulong)Convert.ToInt64(targetTitleIdString, 16);
-
-            byte[] data = File.ReadAllBytes(filePath);
-            File.WriteAllBytes(filePath + ".backup", data);
-
-            int aci0RawOffset = BitConverter.ToInt32(data, 0x70);
-
-            if (data[aci0RawOffset] != 0x41 || data[aci0RawOffset + 1] != 0x43 || data[aci0RawOffset + 2] != 0x49 || data[aci0RawOffset + 3] != 0x30)
-            {
-                return false;
-            }
-
-            byte[] TitleIdBytes = BitConverter.GetBytes(targetTitleId);
-
-            Array.Copy(TitleIdBytes, 0, data, aci0RawOffset + 0x10, TitleIdBytes.Length);
-
-            File.Delete(filePath);
-            File.WriteAllBytes(filePath, data);
-            return true;
-        }
-
         private void btnStart_Click(object sender, EventArgs e)
         {
-            // Validate form values
-            if (!this.isParamsValid()) return;
+            if (!this.areParamsValid()) return;
 
+            try
+            {
+                this.startProcess();
+            }
+            catch (Exception excep)
+            {
+                Console.Write(excep);
+                MessageBox.Show(excep.Message + excep.StackTrace, null, MessageBoxButtons.OK);
+                return;
+            }
+        }
+
+        private void lnklblTitleList_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            Process.Start(Constants.TITLE_LIST_URL);
+        }
+
+        private void startProcess()
+        {
             string targetTitleId = this.txtTitleId.Text.ToUpper();
 
             string xciFile = ((ComboboxItem)cmbXCIFile.SelectedItem).Text.ToString();
@@ -250,49 +245,31 @@ namespace XCI2TitleConverter
 
             // Decrypt XCI
             string decryptXCIargs = String.Format("--intype=xci --securedir=\"{0}\" \"{1}\"", securePath, xciFilePath);
-            var decryptXCIProcess = Process.Start(this.pathHactool, decryptXCIargs);
-            decryptXCIProcess.WaitForExit();
+            using (Process process = Process.Start(this.pathHactool, decryptXCIargs)) process.WaitForExit();
 
             // Decrypt NCA
             string largestNCAFile = this.getLargestFileInPath(securePath);
             string decryptNCAargs = String.Format("--keyset=\"{0}\" --romfs=\"{1}\" --exefsdir=\"{2}\" \"{3}\"", this.pathKeys, romfsFile, exefsPath, largestNCAFile);
-            var decryptNCAProcess = Process.Start(this.pathHactool, decryptNCAargs);
-            decryptNCAProcess.WaitForExit();
+            using (Process process = Process.Start(this.pathHactool, decryptNCAargs)) process.WaitForExit();
 
             secureDirectory.Delete(true);
-            
+
             // Save empty file with decrypted XCI name
-            File.Create(Path.Combine(tilePath, "ORIGINAL_" + xciFile));
+            File.Create(Path.Combine(tilePath, "ORIGINAL_" + xciFile)).Close();
 
             if (!Directory.Exists(exefsPath))
             {
-                MessageBox.Show("Unable to decrypt NCA file, check your keyset! You should remove created files.", null, MessageBoxButtons.OK);
-                return;
+                throw new Exception("Unable to decrypt NCA file, check your keyset! You should remove created files.");
             }
 
-            if (!this.patchNPDM(Path.Combine(exefsPath, "main.npdm"), targetTitleId))
-            {
-                MessageBox.Show("ACI0 magic bytes not found. did you select the right file (main.npdm)?", null, MessageBoxButtons.OK);
-                return;
-            }
+            ulong targetTitleIdULong = (ulong)Convert.ToInt64(this.targetTitleId, 16);
+            string npdmFilePath = Path.Combine(exefsPath, "main.npdm");
+            byte[] npdmBytes = File.ReadAllBytes(npdmFilePath);
+            byte[] patchedNpdmBytes = getPatchedNpdmBytes(npdmBytes, targetTitleIdULong);
+            File.Delete(npdmFilePath);
+            File.WriteAllBytes(npdmFilePath, patchedNpdmBytes);
 
             MessageBox.Show("Success!", this.Text, MessageBoxButtons.OK);
-            return;
-        }
-
-        private void lnklblTitleList_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            Process.Start("http://switchbrew.org/index.php?title=Title_list/Games");
-        }
-    }
-    public class ComboboxItem
-    {
-        public string Text { get; set; }
-        public object Value { get; set; }
-
-        public override string ToString()
-        {
-            return Text;
         }
     }
 }

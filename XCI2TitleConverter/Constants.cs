@@ -4,6 +4,7 @@ namespace XCI2TitleConverter
 {
     class Constants
     {
+        public static string TITLE_LIST_URL = "http://switchbrew.org/index.php?title=Title_list/Games";
         public static Dictionary<string, string> TARGET_TITLES = new Dictionary<string, string>()
         {
             {"010025400AECE000", "Fortnite"},
