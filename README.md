@@ -12,8 +12,3 @@ Converts xci file to (almost) prepared title folder
 
 ## Instructions
 Just follow the form, if your target title is not in the list you can modify `Title ID` input manually.
-
-## TODO
-* Modify `main.npdm` file to match title id (you have to do with this ([http://carlus.altervista.org/nx/title_id_patcher.html](http://carlus.altervista.org/nx/title_id_patcher.html)) atm)
-* Check when `corrupted sector 0` error on console output.
-* Add more Target Titles
