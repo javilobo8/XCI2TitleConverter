@@ -202,6 +202,30 @@ namespace XCI2TitleConverter
             return true;
         }
 
+        // Thanks to Falo@GBATemp
+        private bool patchNPDM(string filePath, string targetTitleIdString)
+        {
+            ulong targetTitleId = (ulong)Convert.ToInt64(targetTitleIdString, 16);
+
+            byte[] data = File.ReadAllBytes(filePath);
+            File.WriteAllBytes(filePath + ".backup", data);
+
+            int aci0RawOffset = BitConverter.ToInt32(data, 0x70);
+
+            if (data[aci0RawOffset] != 0x41 || data[aci0RawOffset + 1] != 0x43 || data[aci0RawOffset + 2] != 0x49 || data[aci0RawOffset + 3] != 0x30)
+            {
+                return false;
+            }
+
+            byte[] TitleIdBytes = BitConverter.GetBytes(targetTitleId);
+
+            Array.Copy(TitleIdBytes, 0, data, aci0RawOffset + 0x10, TitleIdBytes.Length);
+
+            File.Delete(filePath);
+            File.WriteAllBytes(filePath, data);
+            return true;
+        }
+
         private void btnStart_Click(object sender, EventArgs e)
         {
             // Validate form values
@@ -246,15 +270,14 @@ namespace XCI2TitleConverter
                 return;
             }
 
-            // TODO: Change main.npdm titleId
+            if (!this.patchNPDM(Path.Combine(exefsPath, "main.npdm"), targetTitleId))
+            {
+                MessageBox.Show("ACI0 magic bytes not found. did you select the right file (main.npdm)?", null, MessageBoxButtons.OK);
+                return;
+            }
+
             MessageBox.Show("Success!", this.Text, MessageBoxButtons.OK);
             return;
-        }
-
-        // TODO: Remove
-        private void lnklblCarltus_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            Process.Start("http://carlus.altervista.org/nx/title_id_patcher.html");
         }
 
         private void lnklblTitleList_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)

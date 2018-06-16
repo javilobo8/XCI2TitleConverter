@@ -47,8 +47,6 @@
             this.txtOutput = new System.Windows.Forms.TextBox();
             this.txtTitleId = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
-            this.lnklblCarltus = new System.Windows.Forms.LinkLabel();
-            this.label8 = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
             this.lnklblTitleList = new System.Windows.Forms.LinkLabel();
             this.SuspendLayout();
@@ -223,26 +221,6 @@
             this.label7.TabIndex = 18;
             this.label7.Text = "@javilobo8";
             // 
-            // lnklblCarltus
-            // 
-            this.lnklblCarltus.AutoSize = true;
-            this.lnklblCarltus.Location = new System.Drawing.Point(124, 292);
-            this.lnklblCarltus.Name = "lnklblCarltus";
-            this.lnklblCarltus.Size = new System.Drawing.Size(23, 13);
-            this.lnklblCarltus.TabIndex = 19;
-            this.lnklblCarltus.TabStop = true;
-            this.lnklblCarltus.Text = "this";
-            this.lnklblCarltus.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnklblCarltus_LinkClicked);
-            // 
-            // label8
-            // 
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(12, 292);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(114, 13);
-            this.label8.TabIndex = 20;
-            this.label8.Text = "Modify main.npdm with";
-            // 
             // label9
             // 
             this.label9.AutoSize = true;
@@ -270,8 +248,6 @@
             this.ClientSize = new System.Drawing.Size(404, 314);
             this.Controls.Add(this.lnklblTitleList);
             this.Controls.Add(this.label9);
-            this.Controls.Add(this.label8);
-            this.Controls.Add(this.lnklblCarltus);
             this.Controls.Add(this.label7);
             this.Controls.Add(this.txtTitleId);
             this.Controls.Add(this.btnOutput);
@@ -323,8 +299,6 @@
         private System.Windows.Forms.TextBox txtOutput;
         private System.Windows.Forms.TextBox txtTitleId;
         private System.Windows.Forms.Label label7;
-        private System.Windows.Forms.LinkLabel lnklblCarltus;
-        private System.Windows.Forms.Label label8;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.LinkLabel lnklblTitleList;
     }
