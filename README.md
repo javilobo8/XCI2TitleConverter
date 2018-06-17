@@ -1,6 +1,6 @@
 # XCI 2 Title Converter
 
-Converts xci file to (almost) prepared title folder
+Converts xci file to prepared title folder.
 
 ## Features
 * Decrypt XCI

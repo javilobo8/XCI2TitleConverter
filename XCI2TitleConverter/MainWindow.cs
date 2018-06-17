@@ -255,17 +255,18 @@ namespace XCI2TitleConverter
             secureDirectory.Delete(true);
 
             // Save empty file with decrypted XCI name
-            File.Create(Path.Combine(tilePath, "ORIGINAL_" + xciFile)).Close();
+            File.Create(Path.Combine(tilePath, xciFile)).Close();
 
             if (!Directory.Exists(exefsPath))
             {
                 throw new Exception("Unable to decrypt NCA file, check your keyset! You should remove created files.");
             }
 
-            ulong targetTitleIdULong = (ulong)Convert.ToInt64(this.targetTitleId, 16);
+            ulong targetTitleIdULong = (ulong)Convert.ToUInt64(targetTitleId, 16);
             string npdmFilePath = Path.Combine(exefsPath, "main.npdm");
             byte[] npdmBytes = File.ReadAllBytes(npdmFilePath);
             byte[] patchedNpdmBytes = getPatchedNpdmBytes(npdmBytes, targetTitleIdULong);
+
             File.Delete(npdmFilePath);
             File.WriteAllBytes(npdmFilePath, patchedNpdmBytes);
 
