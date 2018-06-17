@@ -209,7 +209,15 @@ namespace XCI2TitleConverter
 
             try
             {
-                this.startProcess();
+                string xciFile = ((ComboboxItem)cmbXCIFile.SelectedItem).Text.ToString();
+                new ConversionProcess(new ConversionConfig {
+                    xciPath = pathXCIDir,
+                    outputPath = pathOutput,
+                    hactoolPath = pathHactool,
+                    keysPath = pathKeys,
+                    targetTitleId = txtTitleId.Text,
+                    xciFilePath = ((ComboboxItem)cmbXCIFile.SelectedItem).Text.ToString(),
+                }).run();
             }
             catch (Exception excep)
             {
@@ -222,55 +230,6 @@ namespace XCI2TitleConverter
         private void lnklblTitleList_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             Process.Start(Constants.TITLE_LIST_URL);
-        }
-
-        private void startProcess()
-        {
-            string targetTitleId = this.txtTitleId.Text.ToUpper();
-
-            string xciFile = ((ComboboxItem)cmbXCIFile.SelectedItem).Text.ToString();
-            string tilePath = Path.Combine(this.pathOutput, targetTitleId);
-            string securePath = Path.Combine(tilePath, "secure");
-            string xciFilePath = Path.Combine(this.pathXCIDir, xciFile);
-            string romfsFile = Path.Combine(tilePath, "romfs.bin");
-            string exefsPath = Path.Combine(tilePath, "exefs");
-
-            if (Directory.Exists(tilePath))
-            {
-                Directory.Delete(tilePath, true);
-            }
-
-            Directory.CreateDirectory(tilePath);
-            DirectoryInfo secureDirectory = Directory.CreateDirectory(securePath);
-
-            // Decrypt XCI
-            string decryptXCIargs = String.Format("--intype=xci --securedir=\"{0}\" \"{1}\"", securePath, xciFilePath);
-            using (Process process = Process.Start(this.pathHactool, decryptXCIargs)) process.WaitForExit();
-
-            // Decrypt NCA
-            string largestNCAFile = this.getLargestFileInPath(securePath);
-            string decryptNCAargs = String.Format("--keyset=\"{0}\" --romfs=\"{1}\" --exefsdir=\"{2}\" \"{3}\"", this.pathKeys, romfsFile, exefsPath, largestNCAFile);
-            using (Process process = Process.Start(this.pathHactool, decryptNCAargs)) process.WaitForExit();
-
-            secureDirectory.Delete(true);
-
-            // Save empty file with decrypted XCI name
-            File.Create(Path.Combine(tilePath, xciFile)).Close();
-
-            if (!Directory.Exists(exefsPath))
-            {
-                throw new Exception("Unable to decrypt NCA file, check your keyset! You should remove created files.");
-            }
-
-            ulong targetTitleIdULong = (ulong)Convert.ToUInt64(targetTitleId, 16);
-            string npdmFilePath = Path.Combine(exefsPath, "main.npdm");
-            byte[] npdmBytes = File.ReadAllBytes(npdmFilePath);
-            byte[] patchedNpdmBytes = getPatchedNpdmBytes(npdmBytes, targetTitleIdULong);
-
-            File.Delete(npdmFilePath);
-            File.WriteAllBytes(npdmFilePath, patchedNpdmBytes);
-
-            MessageBox.Show("Success!", this.Text, MessageBoxButtons.OK);
         }
     }
 }
