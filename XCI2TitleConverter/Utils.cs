@@ -1,29 +1,10 @@
 ﻿using System;
+using System.Reflection;
 
 namespace XCI2TitleConverter
 {
     class Utils
     {
-        // Thanks to Falo@GBATemp
-        public static byte[] getPatchedNpdmBytes(byte[] fileBytes, ulong targetTitleId)
-        {
-            int aci0RawOffset = BitConverter.ToInt32(fileBytes, 0x70);
-
-            if (fileBytes[aci0RawOffset] != 0x41 ||
-                fileBytes[aci0RawOffset + 1] != 0x43 ||
-                fileBytes[aci0RawOffset + 2] != 0x49 ||
-                fileBytes[aci0RawOffset + 3] != 0x30)
-            {
-                throw new Exception("Unable to decrypt NCA file, check your keyset! You should remove created files.");
-            }
-
-            byte[] TitleIdBytes = BitConverter.GetBytes(targetTitleId);
-
-            Array.Copy(TitleIdBytes, 0, fileBytes, aci0RawOffset + 0x10, TitleIdBytes.Length);
-
-            return fileBytes;
-        }
-
         public class ComboboxItem
         {
             public string Text { get; set; }
@@ -33,6 +14,18 @@ namespace XCI2TitleConverter
             {
                 return Text;
             }
+        }
+
+        public static string getWindowTitle()
+        {
+            string name = Assembly.GetExecutingAssembly().GetName().Name;
+            Version version = Assembly.GetExecutingAssembly().GetName().Version;
+            return String.Format("{0} {1}.{2}.{3}-{4}", name, version.Major, version.Minor, version.Build, version.Revision);
+        }
+
+        public static string getAssemblyTitle()
+        {
+            return Assembly.GetExecutingAssembly().GetName().Name;
         }
     }
 }

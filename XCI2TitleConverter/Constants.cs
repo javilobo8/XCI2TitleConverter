@@ -19,7 +19,7 @@ namespace XCI2TitleConverter
             {"0100E65002BB8000", "Stardew Valley"},
             {"01000A10041EA000", "Skyrim"},
             {"0100000000010000", "Super Mario Odyssey"},
-            {"01005ee0036ec000", "Rocket League"},
+            {"01005EE0036EC000", "Rocket League"},
             {"0100152000022000", "Mario Kart 8 Deluxe"},
             {"01007EF00011E000", "The Legend of Zelda: Breath of the Wild"},
             {"0100A5400AC86000", "ARMS Demo"},
