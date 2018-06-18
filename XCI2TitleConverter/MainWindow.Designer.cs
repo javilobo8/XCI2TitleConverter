@@ -171,7 +171,7 @@
             // 
             this.btnStart.Location = new System.Drawing.Point(14, 263);
             this.btnStart.Name = "btnStart";
-            this.btnStart.Size = new System.Drawing.Size(379, 26);
+            this.btnStart.Size = new System.Drawing.Size(379, 36);
             this.btnStart.TabIndex = 13;
             this.btnStart.Text = "Start";
             this.btnStart.UseVisualStyleBackColor = true;
@@ -215,7 +215,7 @@
             // 
             this.label7.AutoSize = true;
             this.label7.Enabled = false;
-            this.label7.Location = new System.Drawing.Point(333, 292);
+            this.label7.Location = new System.Drawing.Point(333, 302);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(60, 13);
             this.label7.TabIndex = 18;
@@ -245,7 +245,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(404, 314);
+            this.ClientSize = new System.Drawing.Size(404, 324);
             this.Controls.Add(this.lnklblTitleList);
             this.Controls.Add(this.label9);
             this.Controls.Add(this.label7);

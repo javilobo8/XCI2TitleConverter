@@ -81,17 +81,15 @@ namespace XCI2TitleConverter
                     FileName = config.hactoolPath,
                     Arguments = String.Format(XCI_DECRYPT_ARGS, securePath, xciFileAbsolutePath),
                     UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    CreateNoWindow = true,
+                    RedirectStandardOutput = false,
+                    CreateNoWindow = false,
                 }
             };
 
             Console.Write("Decrypting XCI...");
             process.Start();
-            string output = process.StandardOutput.ReadToEnd();
             process.WaitForExit();
             Console.WriteLine("done");
-            Console.WriteLine(output);
         }
 
         // TODO: Kill process if MainWindow is closed/killed
@@ -102,17 +100,15 @@ namespace XCI2TitleConverter
                     FileName = config.hactoolPath,
                     Arguments = String.Format(NCA_DECRYPT_ARGS, config.keysPath, romfsPath, exefsPath, largestNCAFileAbsolutePath),
                     UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    CreateNoWindow = true,
+                    RedirectStandardOutput = false,
+                    CreateNoWindow = false,
                 }
             };
 
             Console.Write("Decrypting NCA...");
             process.Start();
-            string output = process.StandardOutput.ReadToEnd();
             process.WaitForExit();
             Console.WriteLine("done");
-            Console.WriteLine(output);
         }
 
         private void saveLargestNCAFile()
