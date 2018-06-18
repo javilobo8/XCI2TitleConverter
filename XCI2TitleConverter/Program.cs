@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
+using XCI2TitleConverter.Properties;
 
 namespace XCI2TitleConverter
 {
@@ -13,6 +14,9 @@ namespace XCI2TitleConverter
         [STAThread]
         static void Main()
         {
+            Settings.Default.Upgrade();
+            Settings.Default.Save();
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new MainWindow());
