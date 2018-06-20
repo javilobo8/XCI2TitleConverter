@@ -139,6 +139,7 @@
             this.cmbXCIFile.Name = "cmbXCIFile";
             this.cmbXCIFile.Size = new System.Drawing.Size(377, 21);
             this.cmbXCIFile.TabIndex = 9;
+            this.cmbXCIFile.TextChanged += new System.EventHandler(this.cmbXCIFile_TextChanged);
             // 
             // label4
             // 
@@ -210,6 +211,7 @@
             this.txtTitleId.Name = "txtTitleId";
             this.txtTitleId.Size = new System.Drawing.Size(160, 20);
             this.txtTitleId.TabIndex = 17;
+            this.txtTitleId.TextChanged += new System.EventHandler(this.txtTitleId_TextChanged);
             // 
             // label7
             // 
