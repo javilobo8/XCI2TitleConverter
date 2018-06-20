@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Threading;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace XCI2TitleConverter
@@ -23,7 +23,7 @@ namespace XCI2TitleConverter
 
         private string largestNCAFileAbsolutePath;
 
-        private Thread runThread;
+        private string originalTitleId;
 
         public ConversionProcess(ConversionConfig config)
         {
@@ -41,8 +41,7 @@ namespace XCI2TitleConverter
         public void run()
         {
             Console.WriteLine("Starting conversion");
-            runThread = new Thread(process);
-            runThread.Start();
+            process();
         }
 
         public void process()
@@ -53,9 +52,6 @@ namespace XCI2TitleConverter
             decryptNCA();
             patchNpdm();
             cleanStuff();
-
-            // Changeme
-            MessageBox.Show("Success!", "Message", MessageBoxButtons.OK);
         }
 
         private void createInitialDirectories()
@@ -100,14 +96,26 @@ namespace XCI2TitleConverter
                     FileName = config.hactoolPath,
                     Arguments = String.Format(NCA_DECRYPT_ARGS, config.keysPath, romfsPath, exefsPath, largestNCAFileAbsolutePath),
                     UseShellExecute = false,
-                    RedirectStandardOutput = false,
-                    CreateNoWindow = false,
+                    RedirectStandardOutput = true,
+                    CreateNoWindow = true,
                 }
             };
 
             Console.Write("Decrypting NCA...");
             process.Start();
-            process.WaitForExit();
+
+            var titleIdRegex = new Regex(@"^Title\sID:\s+([a-f0-9]{16})$");
+
+            while (!process.StandardOutput.EndOfStream)
+            {
+                string line = process.StandardOutput.ReadLine();
+                
+                if (titleIdRegex.Match(line).Success)
+                    originalTitleId = titleIdRegex.Match(line).Groups[1].Value.ToUpper();
+
+                Console.WriteLine(line);
+            }
+
             Console.WriteLine("done");
         }
 
@@ -129,6 +137,7 @@ namespace XCI2TitleConverter
             ulong targetTitleIdULong = Convert.ToUInt64(targetTitleId, 16);
             string npdmFilePath = Path.Combine(exefsPath, "main.npdm");
             byte[] npdmBytes = File.ReadAllBytes(npdmFilePath);
+            File.WriteAllBytes(npdmFilePath + "_original", npdmBytes);
 
             int aci0RawOffset = BitConverter.ToInt32(npdmBytes, 0x70);
 
@@ -144,7 +153,7 @@ namespace XCI2TitleConverter
 
             Array.Copy(patchedNpdmBytes, 0, npdmBytes, aci0RawOffset + 0x10, patchedNpdmBytes.Length);
 
-            File.WriteAllBytes(npdmFilePath, patchedNpdmBytes);
+            File.WriteAllBytes(npdmFilePath, npdmBytes);
             Console.WriteLine("done");
         }
 
@@ -153,6 +162,9 @@ namespace XCI2TitleConverter
             Console.Write("Cleaning stuff...");
             // Remove secure path with nca files
             Directory.Delete(securePath, true);
+
+            // Create 0KB file with original title id
+            File.Create(Path.Combine(titlePath, originalTitleId)).Close();
 
             // Create title info
             Console.WriteLine("done");
