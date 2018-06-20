@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -23,7 +21,9 @@ namespace XCI2TitleConverter
 
         private string targetTitleId = "";
         private string selectedXciFilePath = "";
-         
+
+        private List<BBBRelease> BBBReleases = new List<BBBRelease>();
+
         public MainWindow()
         {
             InitializeComponent();
@@ -32,6 +32,7 @@ namespace XCI2TitleConverter
             outputPath = Settings.Default.pathOutput;
             hactoolPath = Settings.Default.pathHactool;
             keysPath = Settings.Default.pathKeys;
+            retriveBBBReleases();
             updateFormValues();
             readXCIDirectory();
         }
@@ -205,6 +206,7 @@ namespace XCI2TitleConverter
                         keysPath = keysPath,
                         targetTitleId = targetTitleId,
                         xciFilePath = selectedXciFilePath,
+                        BBBReleases = BBBReleases
                     }).run();
                     MessageBox.Show("Success!", "Message", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     setFormStatus();
@@ -223,6 +225,14 @@ namespace XCI2TitleConverter
         private void lnklblTitleList_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             Process.Start(Constants.TITLE_LIST_URL);
+        }
+
+        private void retriveBBBReleases()
+        {
+            new Thread(() =>
+            {
+                this.BBBReleases = getBBBReleases();
+            }).Start();
         }
 
         [DllImport("kernel32.dll", SetLastError = true)]

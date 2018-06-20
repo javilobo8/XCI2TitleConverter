@@ -1,9 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Windows.Forms;
 
 namespace XCI2TitleConverter
 {
@@ -51,6 +51,7 @@ namespace XCI2TitleConverter
             saveLargestNCAFile();
             decryptNCA();
             patchNpdm();
+            writeInfo();
             cleanStuff();
         }
 
@@ -157,27 +158,38 @@ namespace XCI2TitleConverter
             Console.WriteLine("done");
         }
 
+        public void writeInfo()
+        {
+            BBBRelease foundItem = config.BBBReleases
+                .Find((release) => release.titleid.Equals(originalTitleId));
+            if (foundItem != null)
+            {
+                IniFile iniInfo = new IniFile(Path.Combine(titlePath, "info.ini"));
+                iniInfo.Write("titleId", foundItem.titleid, "BACKUP");
+                iniInfo.Write("name", foundItem.name, "BACKUP");
+
+                iniInfo.Write("titleId", targetTitleId, "TARGET");
+            }
+        }
+
         public void cleanStuff()
         {
             Console.Write("Cleaning stuff...");
             // Remove secure path with nca files
             Directory.Delete(securePath, true);
 
-            // Create 0KB file with original title id
-            File.Create(Path.Combine(titlePath, originalTitleId)).Close();
-
-            // Create title info
             Console.WriteLine("done");
         }
     }
 
-    public struct ConversionConfig
+    class ConversionConfig
     {
         // Global config
         public string xciPath;
         public string outputPath;
         public string hactoolPath;
         public string keysPath;
+        public List<BBBRelease> BBBReleases;
 
         // Process config
         public string targetTitleId;
