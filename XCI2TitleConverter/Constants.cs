@@ -8,6 +8,8 @@ namespace XCI2TitleConverter
         public static Dictionary<string, string> TARGET_TITLES = new Dictionary<string, string>()
         {
             {"010025400AECE000", "Fortnite"},
+            {"01005A70096FA000", "Kirby Star Allies Demo"},
+            {"01002C400B6B6000", "Captain Toad: Treasure Tracker Demo"},
             {"010043500A17A000", "Fallout Shelter"},
             {"01008D00062C2000", "VOEZ Demo"},
             {"0100DB7003828000", "Pinball FX3"},
@@ -48,9 +50,7 @@ namespace XCI2TitleConverter
             {"0100917007888000", "Piczle Lines DX Demo"},
             {"0100A9A0088FE000", "Max The Curse Of Brotherhood Demo"},
             {"010086100AA54000", "Portal Knights Demo"},
-            {"01005A70096FA000", "Kirby Star Allies Demo"},
             /*{"", ""},
-            {"", ""},
             {"", ""},
             {"", ""},
             {"", ""},
