@@ -53,8 +53,8 @@ namespace XCI2TitleConverter
             {"0100974004924000", "RAYMAN® LEGENDS: DEFINITIVE EDITION DEMO"},
             {"0100D87002EE0000", "Snipperclips – Cut it out, together! ™ Demo"},
             {"01000DC003740000", "Puyo Puyo Tetris Demo"},
+            {"0100FA500B128000", "Sushi Striker The Way of Sushido Demo"},
             /*{"", ""},
-            {"", ""},
             {"", ""},
             {"", ""},*/
         };
