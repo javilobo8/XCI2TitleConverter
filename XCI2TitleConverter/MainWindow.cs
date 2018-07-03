@@ -57,7 +57,7 @@ namespace XCI2TitleConverter
 
         private void cmbXCIFile_TextChanged(object sender, EventArgs e)
         {
-            selectedXciFilePath = ((ComboBox)sender).Text;
+            selectedXciFilePath = (string)((ComboboxItem)cmbXCIFile.SelectedItem).Value;
         }
 
         private void btnXCIDir_Click(object sender, EventArgs e)
