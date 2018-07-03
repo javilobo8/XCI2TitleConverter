@@ -20,7 +20,7 @@ Just follow the form, if your target title is not in the list you can modify `Ti
 
 ## TODO
 * Editable target titleId list
-* Retreive Title list from BBB
-* Add metadata to created Titles(name, titleId, targetTitleId)
-* HactoolWrapper class
+* ~~Retreive Title list from BBB~~
+* ~~Add metadata to created Titles(name, titleId, targetTitleId)~~
+* ~~HactoolWrapper class~~
 * Wizard configuration + move configuration to file

@@ -45,6 +45,7 @@ namespace XCI2TitleConverter
         public bool KeyExists(string Key, string Section = null)
         {
             return Read(Key, Section).Length > 0;
+
         }
     }
 }

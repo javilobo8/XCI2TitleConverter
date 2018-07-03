@@ -64,6 +64,7 @@
     <Compile Include="BBBRelease.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="ConversionProcess.cs" />
+    <Compile Include="HactoolWrapper.cs" />
     <Compile Include="IniFile.cs" />
     <Compile Include="MainWindow.cs">
       <SubType>Form</SubType>

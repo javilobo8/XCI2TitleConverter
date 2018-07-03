@@ -9,10 +9,8 @@ namespace XCI2TitleConverter
 {
     class ConversionProcess
     {
-        public static string XCI_DECRYPT_ARGS = "--intype=xci --securedir=\"{0}\" \"{1}\"";
-        public static string NCA_DECRYPT_ARGS = "--keyset=\"{0}\" --romfs=\"{1}\" --exefsdir=\"{2}\" \"{3}\"";
-
         private ConversionConfig config;
+        private HactoolWrapper hactool;
 
         private string targetTitleId;
         private string titlePath;
@@ -22,7 +20,6 @@ namespace XCI2TitleConverter
         private string exefsPath;
 
         private string largestNCAFileAbsolutePath;
-
         private string originalTitleId;
 
         public ConversionProcess(ConversionConfig config)
@@ -36,16 +33,14 @@ namespace XCI2TitleConverter
             securePath = Path.Combine(titlePath, "secure");
             romfsPath = Path.Combine(titlePath, "romfs.bin");
             exefsPath = Path.Combine(titlePath, "exefs");
+
+            hactool = new HactoolWrapper(config.hactoolPath, config.keysPath);
         }
 
         public void run()
         {
             Console.WriteLine("Starting conversion");
-            process();
-        }
 
-        public void process()
-        {
             createInitialDirectories();
             decryptXCI();
             saveLargestNCAFile();
@@ -73,15 +68,7 @@ namespace XCI2TitleConverter
         // TODO: Kill process if MainWindow is closed/killed
         private void decryptXCI()
         {
-            Process process = new Process {
-                StartInfo = new ProcessStartInfo {
-                    FileName = config.hactoolPath,
-                    Arguments = String.Format(XCI_DECRYPT_ARGS, securePath, xciFileAbsolutePath),
-                    UseShellExecute = false,
-                    RedirectStandardOutput = false,
-                    CreateNoWindow = false,
-                }
-            };
+            Process process = hactool.decryptXCI(securePath, xciFileAbsolutePath);
 
             Console.Write("Decrypting XCI...");
             process.Start();
@@ -92,15 +79,7 @@ namespace XCI2TitleConverter
         // TODO: Kill process if MainWindow is closed/killed
         private void decryptNCA()
         {
-            Process process = new Process {
-                StartInfo = new ProcessStartInfo {
-                    FileName = config.hactoolPath,
-                    Arguments = String.Format(NCA_DECRYPT_ARGS, config.keysPath, romfsPath, exefsPath, largestNCAFileAbsolutePath),
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    CreateNoWindow = true,
-                }
-            };
+            Process process = hactool.decryptNCA(romfsPath, exefsPath, largestNCAFileAbsolutePath);
 
             Console.Write("Decrypting NCA...");
             process.Start();
@@ -131,28 +110,22 @@ namespace XCI2TitleConverter
             Console.WriteLine("done");
         }
 
-        // Thanks to Falo@GBATemp
         private void patchNpdm()
         {
             Console.Write("Patching main.npdm file...");
-            ulong targetTitleIdULong = Convert.ToUInt64(targetTitleId, 16);
             string npdmFilePath = Path.Combine(exefsPath, "main.npdm");
+
+            // Get little endian base16 hex values
+            byte[] titleBytes = new byte[8];
+            MatchCollection mc = Regex.Matches(targetTitleId, @"[a-fA-F0-9]{2}");
+            for (int i = 0; i < 8; i++)
+                titleBytes[i] = Convert.ToByte(mc[i].Value, 16);
+
+            titleBytes = titleBytes.Reverse().ToArray();
             byte[] npdmBytes = File.ReadAllBytes(npdmFilePath);
             File.WriteAllBytes(npdmFilePath + "_original", npdmBytes);
 
-            int aci0RawOffset = BitConverter.ToInt32(npdmBytes, 0x70);
-
-            if (npdmBytes[aci0RawOffset] != 0x41 ||
-                npdmBytes[aci0RawOffset + 1] != 0x43 ||
-                npdmBytes[aci0RawOffset + 2] != 0x49 ||
-                npdmBytes[aci0RawOffset + 3] != 0x30)
-            {
-                throw new Exception("Unable to decrypt NCA file, check your keyset! You should remove created files.");
-            }
-
-            byte[] patchedNpdmBytes = BitConverter.GetBytes(targetTitleIdULong);
-
-            Array.Copy(patchedNpdmBytes, 0, npdmBytes, aci0RawOffset + 0x10, patchedNpdmBytes.Length);
+            byte[] patchedNpdmBytes = Utils.patchTitleId(npdmBytes, titleBytes);
 
             File.WriteAllBytes(npdmFilePath, npdmBytes);
             Console.WriteLine("done");
@@ -169,6 +142,14 @@ namespace XCI2TitleConverter
                 iniInfo.Write("name", foundItem.name, "BACKUP");
 
                 iniInfo.Write("titleId", targetTitleId, "TARGET");
+
+                if (Constants.TARGET_TITLES.TryGetValue(targetTitleId, out string value))
+                {
+                    if (value != null)
+                    {
+                        iniInfo.Write("name", value, "TARGET");
+                    }
+                }
             }
         }
 
