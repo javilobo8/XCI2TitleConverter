@@ -9,6 +9,8 @@ namespace XCI2TitleConverter
         public static Dictionary<string, string> TARGET_TITLES = new Dictionary<string, string>()
         {
             {"010025400AECE000", "Fortnite"},
+            {"01005A70096FA000", "Kirby Star Allies Demo"},
+            {"01002C400B6B6000", "Captain Toad: Treasure Tracker Demo"},
             {"010043500A17A000", "Fallout Shelter"},
             {"01008D00062C2000", "VOEZ Demo"},
             {"0100DB7003828000", "Pinball FX3"},
@@ -33,6 +35,29 @@ namespace XCI2TitleConverter
             {"01006E30099B8000", "Pic-a-Pix Deluxe Demo"},
             {"01006EE00AE38000", "Shining Resonance Refrain Demo"},
             {"010090B005150000", "Oceanhorn Demo"},
+            {"010069700AF9C000", "Happy Birthdays DEMO"},
+            {"0100DE700B028000", "Semispheres Demo"},
+            {"0100E3500B00E000", "The Bridge Demo"},
+            {"01005AE00A528000", "Star Ghost Demo"},
+            {"01005B3005D6E000", "League Of Evil DEMO"},
+            {"01007E6007764000", "Death Squared The Employee Evaluation Demo"},
+            {"010007B009314000", "I and Me DEMO"},
+            {"010045B00849C000", "MIGHTY GUNVOLT BURST DEMO"},
+            {"010093E00ACB0000", "Kid Tripp Demo"},
+            {"010039300A56C000", "Squareboy vs Bullies Arena Edition DEMO"},
+            {"010044200A112000", "Vostok Inc Demo"},
+            {"010045600A0D4000", "Quest of Dungeons DEMO"},
+            {"010009100845A000", "INVERSUS Deluxe Demo"},
+            {"0100917007888000", "Piczle Lines DX Demo"},
+            {"0100A9A0088FE000", "Max The Curse Of Brotherhood Demo"},
+            {"010086100AA54000", "Portal Knights Demo"},
+            {"0100974004924000", "RAYMAN® LEGENDS: DEFINITIVE EDITION DEMO"},
+            {"0100D87002EE0000", "Snipperclips – Cut it out, together! ™ Demo"},
+            {"01000DC003740000", "Puyo Puyo Tetris Demo"},
+            {"0100FA500B128000", "Sushi Striker The Way of Sushido Demo"},
+            /*{"", ""},
+            {"", ""},
+            {"", ""},*/
         };
     }
 }

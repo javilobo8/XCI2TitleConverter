@@ -18,6 +18,8 @@ Converts xci file to prepared title folder.
 ## Instructions
 Just follow the form, if your target title is not in the list you can modify `Title ID` input manually.
 
+You can search the drop-down list by typing the first two characters of the title to search and give it to unfold
+
 ## TODO
 * Editable target titleId list
 * ~~Retreive Title list from BBB~~
