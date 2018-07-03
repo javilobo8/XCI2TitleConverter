@@ -150,7 +150,8 @@ namespace XCI2TitleConverter
             foreach (FileInfo file in Files)
             {
                 ComboboxItem item = new ComboboxItem();
-                item.Text = file.Name;
+                item.Text = $"({Utils.BytesToString(file.Length)}) {file.Name}";
+                item.Value = file.Name;
                 cmbXCIFile.Items.Add(item);
             }
         }
