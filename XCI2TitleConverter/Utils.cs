@@ -35,7 +35,8 @@ namespace XCI2TitleConverter
         public static string getWindowTitle()
         {
             string name = Assembly.GetExecutingAssembly().GetName().Name;
-            return String.Format("{0} {1}", name, Properties.Settings.Default["version"]);
+            Version version = Assembly.GetExecutingAssembly().GetName().Version;
+            return $"{name} {version.Major}.{version.Minor}.{version.Build}";
         }
 
         public static string getAssemblyTitle()

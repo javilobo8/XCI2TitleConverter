@@ -6,7 +6,6 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
-using XCI2TitleConverter.Properties;
 using static XCI2TitleConverter.Utils;
 
 namespace XCI2TitleConverter
@@ -28,10 +27,10 @@ namespace XCI2TitleConverter
         {
             InitializeComponent();
             this.Text = getWindowTitle();
-            xciDirPath = Settings.Default.pathXCIDir;
-            outputPath = Settings.Default.pathOutput;
-            hactoolPath = Settings.Default.pathHactool;
-            keysPath = Settings.Default.pathKeys;
+            xciDirPath = Constants.config.Read("xciDirPath");
+            outputPath = Constants.config.Read("outputPath");
+            hactoolPath = Constants.config.Read("hactoolPath");
+            keysPath = Constants.config.Read("keysPath");
             retriveBBBReleases();
             updateFormValues();
             readXCIDirectory();
@@ -70,8 +69,7 @@ namespace XCI2TitleConverter
                 {
                     xciDirPath = folderBrowserDialog.SelectedPath;
                     updateFormValues();
-                    Settings.Default["pathXCIDir"] = folderBrowserDialog.SelectedPath;
-                    Settings.Default.Save();
+                    Constants.config.Write("xciDirPath", xciDirPath);
                     readXCIDirectory();
                 }
             }
@@ -87,8 +85,7 @@ namespace XCI2TitleConverter
                 {
                     outputPath = folderBrowserDialog.SelectedPath;
                     updateFormValues();
-                    Settings.Default["pathOutput"] = folderBrowserDialog.SelectedPath;
-                    Settings.Default.Save();
+                    Constants.config.Write("outputPath", outputPath);
                 }
             }
         }
@@ -103,8 +100,7 @@ namespace XCI2TitleConverter
             {
                 hactoolPath = fileDialog.FileName;
                 updateFormValues();
-                Settings.Default["pathHactool"] = fileDialog.FileName;
-                Settings.Default.Save();
+                Constants.config.Write("hactoolPath", hactoolPath);
             }
         }
 
@@ -118,8 +114,7 @@ namespace XCI2TitleConverter
             {
                 keysPath = openFileDialog1.FileName;
                 updateFormValues();
-                Settings.Default["pathKeys"] = openFileDialog1.FileName;
-                Settings.Default.Save();
+                Constants.config.Write("keysPath", keysPath);
             }
         }
 

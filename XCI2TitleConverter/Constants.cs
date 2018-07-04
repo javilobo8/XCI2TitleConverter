@@ -1,9 +1,12 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 
 namespace XCI2TitleConverter
 {
     class Constants
     {
+        public static string CONFIG_FILE = "config.ini";
+        public static IniFile config = new IniFile(Path.Combine(".", CONFIG_FILE));
         public static string TITLE_LIST_URL = "http://switchbrew.org/index.php?title=Title_list/Games";
         public static string BBB_RELEASES_URL = "http://nswdb.com/xml.php";
         public static Dictionary<string, string> TARGET_TITLES = new Dictionary<string, string>()
