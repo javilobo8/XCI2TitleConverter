@@ -1,10 +1,15 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 
 namespace XCI2TitleConverter
 {
     class Constants
     {
+        public static string BACKUP_SUFFIX = ".bak";
+        public static string CONFIG_FILE = "config.ini";
+        public static IniFile config = new IniFile(Path.Combine(".", CONFIG_FILE));
         public static string TITLE_LIST_URL = "http://switchbrew.org/index.php?title=Title_list/Games";
+        public static string BBB_RELEASES_URL = "http://nswdb.com/xml.php";
         public static Dictionary<string, string> TARGET_TITLES = new Dictionary<string, string>()
         {
             {"010025400AECE000", "Fortnite"},
@@ -54,9 +59,6 @@ namespace XCI2TitleConverter
             {"0100D87002EE0000", "Snipperclips – Cut it out, together! ™ Demo"},
             {"01000DC003740000", "Puyo Puyo Tetris Demo"},
             {"0100FA500B128000", "Sushi Striker The Way of Sushido Demo"},
-            /*{"", ""},
-            {"", ""},
-            {"", ""},*/
         };
     }
 }

@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
-using XCI2TitleConverter.Properties;
 using static XCI2TitleConverter.Utils;
 
 namespace XCI2TitleConverter
@@ -23,16 +20,18 @@ namespace XCI2TitleConverter
 
         private string targetTitleId = "";
         private string selectedXciFilePath = "";
-         
+
+        private List<BBBRelease> BBBReleases = new List<BBBRelease>();
+
         public MainWindow()
         {
             InitializeComponent();
             this.Text = getWindowTitle();
-            xciDirPath = Settings.Default.pathXCIDir;
-            outputPath = Settings.Default.pathOutput;
-            hactoolPath = Settings.Default.pathHactool;
-            keysPath = Settings.Default.pathKeys;
-            updateFormValues();
+            xciDirPath = Constants.config.Read("xciDirPath");
+            outputPath = Constants.config.Read("outputPath");
+            hactoolPath = Constants.config.Read("hactoolPath");
+            keysPath = Constants.config.Read("keysPath");
+            retriveBBBReleases();
             readXCIDirectory();
         }
 
@@ -47,16 +46,41 @@ namespace XCI2TitleConverter
                 item.Value = title.Key;
                 cmbTarget.Items.Add(item);
             }
+            initialCheck();
+            updateFormValues();
+        }
+
+        private void initialCheck()
+        {
+            if (!Directory.Exists(xciDirPath) && xciDirPath != "")
+            {
+                Console.WriteLine($"[WARNING]: XCI directory \"{xciDirPath}\" does not exist.");
+                Constants.config.Write("xciDirPath", "");
+                xciDirPath = "";
+            }
+            if (!Directory.Exists(outputPath) && outputPath != "")
+            {
+                Console.WriteLine($"[WARNING]: Output directory \"{outputPath}\" does not exist.");
+                Constants.config.Write("outputPath", "");
+                outputPath = "";
+            }
+            if (!File.Exists(hactoolPath) && hactoolPath != "")
+            {
+                Console.WriteLine($"[WARNING]: hactool.exe file \"{hactoolPath}\" does not exist.");
+                Constants.config.Write("hactoolPath", "");
+                hactoolPath = "";
+            }
+            if (!File.Exists(keysPath) && keysPath != "")
+            {
+                Console.WriteLine($"[WARNING]: hactool.exe file \"{keysPath}\" does not exist.");
+                Constants.config.Write("keysPath", "");
+                keysPath = "";
+            }
         }
 
         private void txtTitleId_TextChanged(object sender, EventArgs e)
         {
             targetTitleId = ((TextBox)sender).Text;
-        }
-
-        private void cmbXCIFile_TextChanged(object sender, EventArgs e)
-        {
-            selectedXciFilePath = ((ComboBox)sender).Text;
         }
 
         private void btnXCIDir_Click(object sender, EventArgs e)
@@ -69,8 +93,7 @@ namespace XCI2TitleConverter
                 {
                     xciDirPath = folderBrowserDialog.SelectedPath;
                     updateFormValues();
-                    Settings.Default["pathXCIDir"] = folderBrowserDialog.SelectedPath;
-                    Settings.Default.Save();
+                    Constants.config.Write("xciDirPath", xciDirPath);
                     readXCIDirectory();
                 }
             }
@@ -86,8 +109,7 @@ namespace XCI2TitleConverter
                 {
                     outputPath = folderBrowserDialog.SelectedPath;
                     updateFormValues();
-                    Settings.Default["pathOutput"] = folderBrowserDialog.SelectedPath;
-                    Settings.Default.Save();
+                    Constants.config.Write("outputPath", outputPath);
                 }
             }
         }
@@ -97,13 +119,12 @@ namespace XCI2TitleConverter
             OpenFileDialog fileDialog = new OpenFileDialog();
             fileDialog.Filter = "Hactool binary|hactool.exe";
             fileDialog.Title = "Select a hacktool.exe";
-         
+
             if (fileDialog.ShowDialog() == DialogResult.OK)
             {
                 hactoolPath = fileDialog.FileName;
                 updateFormValues();
-                Settings.Default["pathHactool"] = fileDialog.FileName;
-                Settings.Default.Save();
+                Constants.config.Write("hactoolPath", hactoolPath);
             }
         }
 
@@ -117,8 +138,7 @@ namespace XCI2TitleConverter
             {
                 keysPath = openFileDialog1.FileName;
                 updateFormValues();
-                Settings.Default["pathKeys"] = openFileDialog1.FileName;
-                Settings.Default.Save();
+                Constants.config.Write("keysPath", keysPath);
             }
         }
 
@@ -137,29 +157,29 @@ namespace XCI2TitleConverter
 
         private void readXCIDirectory()
         {
-            if (xciDirPath == null || xciDirPath == "") return;
+            if (xciDirPath == null || xciDirPath == "" || !Directory.Exists(xciDirPath)) return;
 
             DirectoryInfo directory = new DirectoryInfo(xciDirPath);
             FileInfo[] Files = directory.GetFiles("*.xci");
 
-            cmbXCIFile.Items.Clear();
-            cmbXCIFile.SelectedItem = -1;
-            cmbXCIFile.Text = "";
+            listViewXCI.Items.Clear();
+            listViewXCI.Text = "";
 
             foreach (FileInfo file in Files)
             {
-                ComboboxItem item = new ComboboxItem();
-                item.Text = file.Name;
-                cmbXCIFile.Items.Add(item);
+                ListViewItem listItem = new ListViewItem(BytesToString(file.Length));
+                listItem.SubItems.Add(file.Name);
+                listItem.Tag = file;
+                listViewXCI.Items.Add(listItem);
             }
         }
 
         private void setFormStatus(bool enabled = true) {
-            Invoke((MethodInvoker) delegate ()
-            {
-                btnStart.Text = enabled ? "Start conversion" : "Converting (this might take a while, look at the console)";
-                this.Enabled = enabled;
-            });
+            Invoke((MethodInvoker)delegate ()
+           {
+               btnStart.Text = enabled ? "Start conversion" : "Converting (this might take a while, look at the console)";
+               this.Enabled = enabled;
+           });
         }
 
         private void checkParams()
@@ -205,6 +225,7 @@ namespace XCI2TitleConverter
                         keysPath = keysPath,
                         targetTitleId = targetTitleId,
                         xciFilePath = selectedXciFilePath,
+                        BBBReleases = BBBReleases
                     }).run();
                     MessageBox.Show("Success!", "Message", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     setFormStatus();
@@ -225,8 +246,26 @@ namespace XCI2TitleConverter
             Process.Start(Constants.TITLE_LIST_URL);
         }
 
+        private void retriveBBBReleases()
+        {
+            new Thread(() =>
+            {
+                this.BBBReleases = getBBBReleases();
+            }).Start();
+        }
+
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         static extern bool AllocConsole();
+
+        private void listViewXCI_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (listViewXCI.SelectedItems.Count == 1)
+            {
+                FileInfo fileInfo = (FileInfo)(listViewXCI.SelectedItems[0].Tag);
+                selectedXciFilePath = fileInfo.FullName;
+            }
+            
+        }
     }
 }

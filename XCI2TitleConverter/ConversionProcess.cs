@@ -1,18 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Windows.Forms;
 
 namespace XCI2TitleConverter
 {
     class ConversionProcess
     {
-        public static string XCI_DECRYPT_ARGS = "--intype=xci --securedir=\"{0}\" \"{1}\"";
-        public static string NCA_DECRYPT_ARGS = "--keyset=\"{0}\" --romfs=\"{1}\" --exefsdir=\"{2}\" \"{3}\"";
-
+        private static string TEMP_DIR = Path.Combine(".", "temp");
         private ConversionConfig config;
+        private HactoolWrapper hactool;
 
         private string targetTitleId;
         private string titlePath;
@@ -22,7 +21,6 @@ namespace XCI2TitleConverter
         private string exefsPath;
 
         private string largestNCAFileAbsolutePath;
-
         private string originalTitleId;
 
         public ConversionProcess(ConversionConfig config)
@@ -33,75 +31,55 @@ namespace XCI2TitleConverter
 
             titlePath = Path.Combine(this.config.outputPath, targetTitleId);
             xciFileAbsolutePath = Path.Combine(this.config.xciPath, this.config.xciFilePath);
-            securePath = Path.Combine(titlePath, "secure");
+            securePath = Path.Combine(TEMP_DIR, "secure");
             romfsPath = Path.Combine(titlePath, "romfs.bin");
             exefsPath = Path.Combine(titlePath, "exefs");
+
+            hactool = new HactoolWrapper(config.hactoolPath, config.keysPath);
         }
 
         public void run()
-        {
-            Console.WriteLine("Starting conversion");
-            process();
-        }
-
-        public void process()
         {
             createInitialDirectories();
             decryptXCI();
             saveLargestNCAFile();
             decryptNCA();
             patchNpdm();
+            writeInfo();
             cleanStuff();
         }
 
         private void createInitialDirectories()
         {
-            Console.Write("Creating initial directories...");
-            // TODO: msgbox?
             if (Directory.Exists(titlePath))
             {
                 Directory.Delete(titlePath, true);
             }
 
+            if (Directory.Exists(TEMP_DIR))
+            {
+                Directory.Delete(TEMP_DIR, true);
+            }
+
             Directory.CreateDirectory(titlePath);
+            Directory.CreateDirectory(TEMP_DIR);
 
             Directory.CreateDirectory(securePath);
-            Console.WriteLine("done");
         }
 
         // TODO: Kill process if MainWindow is closed/killed
         private void decryptXCI()
         {
-            Process process = new Process {
-                StartInfo = new ProcessStartInfo {
-                    FileName = config.hactoolPath,
-                    Arguments = String.Format(XCI_DECRYPT_ARGS, securePath, xciFileAbsolutePath),
-                    UseShellExecute = false,
-                    RedirectStandardOutput = false,
-                    CreateNoWindow = false,
-                }
-            };
-
-            Console.Write("Decrypting XCI...");
+            Process process = hactool.decryptXCI(securePath, xciFileAbsolutePath);
+            
             process.Start();
             process.WaitForExit();
-            Console.WriteLine("done");
         }
 
         // TODO: Kill process if MainWindow is closed/killed
         private void decryptNCA()
         {
-            Process process = new Process {
-                StartInfo = new ProcessStartInfo {
-                    FileName = config.hactoolPath,
-                    Arguments = String.Format(NCA_DECRYPT_ARGS, config.keysPath, romfsPath, exefsPath, largestNCAFileAbsolutePath),
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    CreateNoWindow = true,
-                }
-            };
-
-            Console.Write("Decrypting NCA...");
+            Process process = hactool.decryptNCA(romfsPath, exefsPath, largestNCAFileAbsolutePath);
             process.Start();
 
             var titleIdRegex = new Regex(@"^Title\sID:\s+([a-f0-9]{16})$");
@@ -115,69 +93,69 @@ namespace XCI2TitleConverter
 
                 Console.WriteLine(line);
             }
-
-            Console.WriteLine("done");
         }
 
         private void saveLargestNCAFile()
         {
-            Console.Write("Saving largest NCA file...");
-            this.largestNCAFileAbsolutePath = new DirectoryInfo(securePath)
-                .EnumerateFiles()
-                .OrderByDescending(file => file.Length)
-                .FirstOrDefault()
-                .FullName;
-            Console.WriteLine("done");
+            FileInfo largestFile = new DirectoryInfo(securePath).EnumerateFiles().OrderByDescending(file => file.Length).FirstOrDefault();
+            largestNCAFileAbsolutePath = largestFile.FullName;
         }
 
-        // Thanks to Falo@GBATemp
         private void patchNpdm()
         {
-            Console.Write("Patching main.npdm file...");
-            ulong targetTitleIdULong = Convert.ToUInt64(targetTitleId, 16);
             string npdmFilePath = Path.Combine(exefsPath, "main.npdm");
+
+            // Get little endian base16 hex values
+            byte[] titleBytes = new byte[8];
+            MatchCollection mc = Regex.Matches(targetTitleId, @"[a-fA-F0-9]{2}");
+            for (int i = 0; i < 8; i++)
+                titleBytes[i] = Convert.ToByte(mc[i].Value, 16);
+
+            titleBytes = titleBytes.Reverse().ToArray();
             byte[] npdmBytes = File.ReadAllBytes(npdmFilePath);
-            File.WriteAllBytes(npdmFilePath + "_original", npdmBytes);
+            File.WriteAllBytes(npdmFilePath + Constants.BACKUP_SUFFIX, npdmBytes);
 
-            int aci0RawOffset = BitConverter.ToInt32(npdmBytes, 0x70);
-
-            if (npdmBytes[aci0RawOffset] != 0x41 ||
-                npdmBytes[aci0RawOffset + 1] != 0x43 ||
-                npdmBytes[aci0RawOffset + 2] != 0x49 ||
-                npdmBytes[aci0RawOffset + 3] != 0x30)
-            {
-                throw new Exception("Unable to decrypt NCA file, check your keyset! You should remove created files.");
-            }
-
-            byte[] patchedNpdmBytes = BitConverter.GetBytes(targetTitleIdULong);
-
-            Array.Copy(patchedNpdmBytes, 0, npdmBytes, aci0RawOffset + 0x10, patchedNpdmBytes.Length);
+            byte[] patchedNpdmBytes = Utils.patchTitleId(npdmBytes, titleBytes);
 
             File.WriteAllBytes(npdmFilePath, npdmBytes);
-            Console.WriteLine("done");
+        }
+
+        public void writeInfo()
+        {
+            BBBRelease foundItem = config.BBBReleases
+                .Find((release) => release.titleid.Equals(originalTitleId));
+            if (foundItem != null)
+            {
+                IniFile iniInfo = new IniFile(Path.Combine(titlePath, "info.ini"));
+                iniInfo.Write("titleId", foundItem.titleid, "BACKUP");
+                iniInfo.Write("name", foundItem.name, "BACKUP");
+
+                iniInfo.Write("titleId", targetTitleId, "TARGET");
+
+                if (Constants.TARGET_TITLES.TryGetValue(targetTitleId, out string value))
+                {
+                    if (value != null)
+                    {
+                        iniInfo.Write("name", value, "TARGET");
+                    }
+                }
+            }
         }
 
         public void cleanStuff()
         {
-            Console.Write("Cleaning stuff...");
-            // Remove secure path with nca files
-            Directory.Delete(securePath, true);
-
-            // Create 0KB file with original title id
-            File.Create(Path.Combine(titlePath, originalTitleId)).Close();
-
-            // Create title info
-            Console.WriteLine("done");
+            Directory.Delete(TEMP_DIR, true);
         }
     }
 
-    public struct ConversionConfig
+    class ConversionConfig
     {
         // Global config
         public string xciPath;
         public string outputPath;
         public string hactoolPath;
         public string keysPath;
+        public List<BBBRelease> BBBReleases;
 
         // Process config
         public string targetTitleId;
