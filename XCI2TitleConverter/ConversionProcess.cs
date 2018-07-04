@@ -9,6 +9,7 @@ namespace XCI2TitleConverter
 {
     class ConversionProcess
     {
+        private static string TEMP_DIR = Path.Combine(".", "temp");
         private ConversionConfig config;
         private HactoolWrapper hactool;
 
@@ -30,7 +31,7 @@ namespace XCI2TitleConverter
 
             titlePath = Path.Combine(this.config.outputPath, targetTitleId);
             xciFileAbsolutePath = Path.Combine(this.config.xciPath, this.config.xciFilePath);
-            securePath = Path.Combine(titlePath, "secure");
+            securePath = Path.Combine(TEMP_DIR, "secure");
             romfsPath = Path.Combine(titlePath, "romfs.bin");
             exefsPath = Path.Combine(titlePath, "exefs");
 
@@ -39,8 +40,6 @@ namespace XCI2TitleConverter
 
         public void run()
         {
-            Console.WriteLine("Starting conversion");
-
             createInitialDirectories();
             decryptXCI();
             saveLargestNCAFile();
@@ -52,36 +51,35 @@ namespace XCI2TitleConverter
 
         private void createInitialDirectories()
         {
-            Console.Write("Creating initial directories...");
-            // TODO: msgbox?
             if (Directory.Exists(titlePath))
             {
                 Directory.Delete(titlePath, true);
             }
 
+            if (Directory.Exists(TEMP_DIR))
+            {
+                Directory.Delete(TEMP_DIR, true);
+            }
+
             Directory.CreateDirectory(titlePath);
+            Directory.CreateDirectory(TEMP_DIR);
 
             Directory.CreateDirectory(securePath);
-            Console.WriteLine("done");
         }
 
         // TODO: Kill process if MainWindow is closed/killed
         private void decryptXCI()
         {
             Process process = hactool.decryptXCI(securePath, xciFileAbsolutePath);
-
-            Console.Write("Decrypting XCI...");
+            
             process.Start();
             process.WaitForExit();
-            Console.WriteLine("done");
         }
 
         // TODO: Kill process if MainWindow is closed/killed
         private void decryptNCA()
         {
             Process process = hactool.decryptNCA(romfsPath, exefsPath, largestNCAFileAbsolutePath);
-
-            Console.Write("Decrypting NCA...");
             process.Start();
 
             var titleIdRegex = new Regex(@"^Title\sID:\s+([a-f0-9]{16})$");
@@ -95,24 +93,16 @@ namespace XCI2TitleConverter
 
                 Console.WriteLine(line);
             }
-
-            Console.WriteLine("done");
         }
 
         private void saveLargestNCAFile()
         {
-            Console.Write("Saving largest NCA file...");
-            this.largestNCAFileAbsolutePath = new DirectoryInfo(securePath)
-                .EnumerateFiles()
-                .OrderByDescending(file => file.Length)
-                .FirstOrDefault()
-                .FullName;
-            Console.WriteLine("done");
+            FileInfo largestFile = new DirectoryInfo(securePath).EnumerateFiles().OrderByDescending(file => file.Length).FirstOrDefault();
+            largestNCAFileAbsolutePath = largestFile.FullName;
         }
 
         private void patchNpdm()
         {
-            Console.Write("Patching main.npdm file...");
             string npdmFilePath = Path.Combine(exefsPath, "main.npdm");
 
             // Get little endian base16 hex values
@@ -123,12 +113,11 @@ namespace XCI2TitleConverter
 
             titleBytes = titleBytes.Reverse().ToArray();
             byte[] npdmBytes = File.ReadAllBytes(npdmFilePath);
-            File.WriteAllBytes(npdmFilePath + "_original", npdmBytes);
+            File.WriteAllBytes(npdmFilePath + Constants.BACKUP_SUFFIX, npdmBytes);
 
             byte[] patchedNpdmBytes = Utils.patchTitleId(npdmBytes, titleBytes);
 
             File.WriteAllBytes(npdmFilePath, npdmBytes);
-            Console.WriteLine("done");
         }
 
         public void writeInfo()
@@ -155,11 +144,7 @@ namespace XCI2TitleConverter
 
         public void cleanStuff()
         {
-            Console.Write("Cleaning stuff...");
-            // Remove secure path with nca files
-            Directory.Delete(securePath, true);
-
-            Console.WriteLine("done");
+            Directory.Delete(TEMP_DIR, true);
         }
     }
 

@@ -5,6 +5,7 @@ namespace XCI2TitleConverter
 {
     class Constants
     {
+        public static string BACKUP_SUFFIX = ".bak";
         public static string CONFIG_FILE = "config.ini";
         public static IniFile config = new IniFile(Path.Combine(".", CONFIG_FILE));
         public static string TITLE_LIST_URL = "http://switchbrew.org/index.php?title=Title_list/Games";
