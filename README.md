@@ -6,13 +6,14 @@ Converts xci file to prepared title folder.
 * Decrypt XCI
 * Decrypt NCA
 * Patch `main.npdm`
-
+* Write `info.ini` to created title
+* Card 2 type support (not with Crash Bandicoot `:(`)
 ## Requirements
 * Windows
 * Hactool build for Windows [https://github.com/SciresM/hactool/releases](https://github.com/SciresM/hactool/releases)
 * Dumped keys
 
-![program](https://i.gyazo.com/ddea55573bf41c95226577d200f6f893.png)
+![program](https://i.gyazo.com/6da55df2e8f8e11cc35b5398921d5a8c.png)
 
 
 ## Instructions
